@@ -1,16 +1,7 @@
-/*
-  FUSE: Filesystem in Userspace
-  Copyright (C) 2001-2007  Miklos Szeredi <miklos@szeredi.hu>
-
-  This program can be distributed under the terms of the GNU GPL.
-  See the file COPYING.
-
-  gcc -Wall hello.c `pkg-config fuse --cflags --libs` -o hello
-*/
-
 #define FUSE_USE_VERSION 26
 
 #include <fuse.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
@@ -37,6 +28,8 @@ static int hello_getattr(const char *path, struct stat *stbuf)
 	return res;
 }
 
+extern char** ReadDir(const char* path);
+
 static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 			 off_t offset, struct fuse_file_info *fi)
 {
@@ -48,7 +41,13 @@ static int hello_readdir(const char *path, void *buf, fuse_fill_dir_t filler,
 
 	filler(buf, ".", NULL, 0);
 	filler(buf, "..", NULL, 0);
-	filler(buf, hello_path + 1, NULL, 0);
+
+	char** entries = ReadDir(path);
+	for (char** entry_p = entries; *entry_p != NULL; entry_p++) {
+		filler(buf, *entry_p, NULL, 0);
+		free(*entry_p);
+	}
+	free(entries);
 
 	return 0;
 }
@@ -92,5 +91,14 @@ static struct fuse_operations hello_oper = {
 
 int main2(int argc, char *argv[])
 {
+	char** entries = ReadDir("/");
+	printf("entries %p\n", entries);
+	for (char** entry_p = entries; *entry_p != NULL; entry_p++) {
+		printf("entry %p\n", *entry_p);
+		puts(*entry_p);
+		free(*entry_p);
+	}
+	free(entries);
+
 	return fuse_main(argc, argv, &hello_oper, NULL);
 }
