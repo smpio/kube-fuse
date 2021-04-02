@@ -22,8 +22,11 @@ static int hello_getattr(const char *path, struct stat *stbuf)
 		stbuf->st_mode = S_IFREG | 0444;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = strlen(hello_str);
-	} else
-		res = -ENOENT;
+	} else {
+		stbuf->st_mode = S_IFREG | 0444;
+		stbuf->st_nlink = 1;
+		stbuf->st_size = 0;
+	}
 
 	return res;
 }
@@ -91,14 +94,15 @@ static struct fuse_operations hello_oper = {
 
 int main2(int argc, char *argv[])
 {
-	char** entries = ReadDir("/");
-	printf("entries %p\n", entries);
-	for (char** entry_p = entries; *entry_p != NULL; entry_p++) {
-		printf("entry %p\n", *entry_p);
-		puts(*entry_p);
-		free(*entry_p);
-	}
-	free(entries);
-
+	// char** entries = ReadDir("/");
+	// printf("entries %p\n", entries);
+	// for (char** entry_p = entries; *entry_p != NULL; entry_p++) {
+	// 	printf("entry %p\n", *entry_p);
+	// 	puts(*entry_p);
+	// 	free(*entry_p);
+	// }
+	// free(entries);
+	//return 0;
+	puts("kube-fuse starting");
 	return fuse_main(argc, argv, &hello_oper, NULL);
 }

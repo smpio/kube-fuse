@@ -5,18 +5,36 @@ package main
 // int main2(int argc, char *argv[]);
 import "C"
 import (
+	"context"
 	"os"
+
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
+var api *API
+
 func ListDir(path string) []string {
-	return []string{"hello", "world"}
+	//return []string{}
+
+	pods, err := api.Clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return []string{}
+	}
+
+	names := make([]string, len(pods.Items))
+	for idx, pod := range pods.Items {
+		names[idx] = pod.Name
+	}
+
+	return names
 }
 
 //export ReadDir
 func ReadDir(path *C.char) **C.char {
 	entries := ListDir(C.GoString(path))
 
-	result := make([]*C.char, len(entries))
+	result := make([]*C.char, len(entries)+1)
 	for idx, entry := range entries {
 		result[idx] = C.CString(entry)
 	}
@@ -25,6 +43,14 @@ func ReadDir(path *C.char) **C.char {
 }
 
 func main() {
+	var err error
+	api, err = NewAPI()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	api.Clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+
 	argc := C.int(len(os.Args))
 	argv := make([]*C.char, len(os.Args))
 	for idx, arg := range os.Args {
