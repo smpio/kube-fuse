@@ -6,10 +6,13 @@ package main
 import "C"
 import (
 	"context"
+	"flag"
 	"os"
+	"path/filepath"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	"k8s.io/client-go/util/homedir"
 )
 
 var api *API
@@ -43,18 +46,28 @@ func ReadDir(path *C.char) **C.char {
 }
 
 func main() {
+	var kubeconfig *string
+	if home := homedir.HomeDir(); home != "" {
+		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	} else {
+		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+	}
+	flag.Parse()
+	args := flag.Args()
+
 	var err error
-	api, err = NewAPI()
+	api, err = NewAPI(kubeconfig)
 	if err != nil {
 		panic(err.Error())
 	}
 
 	api.Clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 
-	argc := C.int(len(os.Args))
-	argv := make([]*C.char, len(os.Args))
-	for idx, arg := range os.Args {
-		argv[idx] = C.CString(arg)
+	argc := C.int(len(args) + 1)
+	argv := make([]*C.char, len(args)+1)
+	argv[0] = C.CString(os.Args[0])
+	for idx, arg := range args {
+		argv[idx+1] = C.CString(arg)
 	}
 
 	code := int(C.main2(argc, &argv[0]))
