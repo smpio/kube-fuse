@@ -80,8 +80,9 @@ static int kube_read(const char *path, char *buf, size_t size, off_t offset,
 
     len = strlen(kube_str);
     if (offset < len) {
-        if (offset + size > len)
+        if (offset + size > len) {
             size = len - offset;
+        }
         memcpy(buf, kube_str + offset, size);
     } else {
         size = 0;
