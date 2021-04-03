@@ -1,46 +1,17 @@
 package main
 
 // #cgo pkg-config: fuse
-// #include "helpers.h"
 // int c_main(int argc, char *argv[]);
 import "C"
 import (
-	"context"
 	"flag"
 	"os"
 	"path/filepath"
 
+	_ "github.com/smpio/kube-fuse/fs"
 	"github.com/smpio/kube-fuse/k8s"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/util/homedir"
 )
-
-func ListDir(path string) []string {
-	pods, err := k8s.Clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
-	if err != nil {
-		return []string{}
-	}
-
-	names := make([]string, len(pods.Items))
-	for idx, pod := range pods.Items {
-		names[idx] = pod.Name
-	}
-
-	return names
-}
-
-//export ReadDir
-func ReadDir(path *C.char) **C.char {
-	entries := ListDir(C.GoString(path))
-
-	result := make([]*C.char, len(entries)+1)
-	for idx, entry := range entries {
-		result[idx] = C.CString(entry)
-	}
-
-	return C.copy_str_ptr_array(&result[0], C.ulong(len(entries)))
-}
 
 func main() {
 	var kubeconfig *string
