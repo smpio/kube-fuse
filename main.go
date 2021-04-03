@@ -10,15 +10,14 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/smpio/kube-fuse/k8s"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/util/homedir"
 )
 
-var api *API
-
 func ListDir(path string) []string {
-	pods, err := api.Clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	pods, err := k8s.Clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return []string{}
 	}
@@ -52,8 +51,7 @@ func main() {
 	}
 	flag.Parse()
 
-	var err error
-	api, err = NewAPI(kubeconfig)
+	err := k8s.Init(kubeconfig)
 	if err != nil {
 		panic(err.Error())
 	}
