@@ -92,7 +92,7 @@ static struct fuse_operations hello_oper = {
 	.read		= hello_read,
 };
 
-int main2(int argc, char *argv[])
+int c_main(int argc, char *argv[])
 {
 	// char** entries = ReadDir("/");
 	// printf("entries %p\n", entries);

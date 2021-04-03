@@ -2,7 +2,7 @@ package main
 
 // #cgo pkg-config: fuse
 // #include "helpers.h"
-// int main2(int argc, char *argv[]);
+// int c_main(int argc, char *argv[]);
 import "C"
 import (
 	"context"
@@ -53,7 +53,6 @@ func main() {
 		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
 	}
 	flag.Parse()
-	args := flag.Args()
 
 	var err error
 	api, err = NewAPI(kubeconfig)
@@ -61,15 +60,18 @@ func main() {
 		panic(err.Error())
 	}
 
-	api.Clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	fuseArgs := []string{os.Args[0]}            // program name
+	fuseArgs = append(fuseArgs, flag.Args()...) // positional params (or everything after --)
+	fuseArgs = append(fuseArgs, "-f")           // always run in foreground
+	os.Exit(fuseMain(fuseArgs))
+}
 
-	argc := C.int(len(args) + 1)
-	argv := make([]*C.char, len(args)+1)
-	argv[0] = C.CString(os.Args[0])
+func fuseMain(args []string) int {
+	argc := C.int(len(args))
+	argv := make([]*C.char, len(args))
 	for idx, arg := range args {
-		argv[idx+1] = C.CString(arg)
+		argv[idx] = C.CString(arg)
 	}
 
-	code := int(C.main2(argc, &argv[0]))
-	os.Exit(code)
+	return int(C.c_main(argc, &argv[0]))
 }
