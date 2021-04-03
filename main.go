@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/smpio/kube-fuse/fs"
 	_ "github.com/smpio/kube-fuse/fs"
 	"github.com/smpio/kube-fuse/k8s"
 	"k8s.io/client-go/util/homedir"
@@ -22,7 +23,12 @@ func main() {
 	}
 	flag.Parse()
 
-	err := k8s.Init(kubeconfig)
+	var err error
+	err = k8s.Init(kubeconfig)
+	if err != nil {
+		panic(err.Error())
+	}
+	err = fs.InitCache()
 	if err != nil {
 		panic(err.Error())
 	}
