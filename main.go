@@ -18,8 +18,6 @@ import (
 var api *API
 
 func ListDir(path string) []string {
-	//return []string{}
-
 	pods, err := api.Clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return []string{}
@@ -59,9 +57,6 @@ func main() {
 	if err != nil {
 		panic(err.Error())
 	}
-
-	//log.Print(api.DiscoveryClient.ServerGroups())
-	//return
 
 	fuseArgs := []string{os.Args[0]}            // program name
 	fuseArgs = append(fuseArgs, flag.Args()...) // positional params (or everything after --)
