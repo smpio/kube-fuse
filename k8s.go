@@ -1,12 +1,14 @@
 package main
 
 import (
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 type API struct {
-	Clientset *kubernetes.Clientset
+	Clientset       *kubernetes.Clientset
+	DiscoveryClient *discovery.DiscoveryClient
 }
 
 func NewAPI(kubeconfig *string) (*API, error) {
@@ -19,7 +21,14 @@ func NewAPI(kubeconfig *string) (*API, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
 	return &API{
-		Clientset: clientset,
+		Clientset:       clientset,
+		DiscoveryClient: discoveryClient,
 	}, nil
 }

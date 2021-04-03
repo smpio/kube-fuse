@@ -60,6 +60,9 @@ func main() {
 		panic(err.Error())
 	}
 
+	//log.Print(api.DiscoveryClient.ServerGroups())
+	//return
+
 	fuseArgs := []string{os.Args[0]}            // program name
 	fuseArgs = append(fuseArgs, flag.Args()...) // positional params (or everything after --)
 	fuseArgs = append(fuseArgs, "-f")           // always run in foreground
